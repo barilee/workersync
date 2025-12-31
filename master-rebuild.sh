@@ -23,6 +23,7 @@ NUMBER_OF_FREELANCERS=3               # How many freelancer containers to create
 # Global variables
 PROJECT_DIR="/opt/freelancer-env"
 SERVER_PUBLIC_IP=""
+ADMIN_SSH_PORT=$((58080 + 5))  # Change 0 to offset if needed
 
 # Function: Print colored output
 print_status() {
@@ -167,10 +168,14 @@ setup_firewall() {
     # SSH
     ufw allow ssh
     
+    # Admin SSH port
+    ufw allow $ADMIN_SSH_PORT/tcp
+    print_status "Allowed port: $ADMIN_SSH_PORT (Admin SSH)"
+
     # Freelancer ports
     for i in $(seq 1 $NUMBER_OF_FREELANCERS); do
-        PORT=$((4000 + i))
-        SSH_PORT=$((2220 + i))
+        PORT=$((54040 + i))
+        SSH_PORT=$((52520 + i))
         ufw allow $PORT/tcp
         ufw allow $SSH_PORT/tcp
         print_status "Allowed ports: $PORT (NoMachine), $SSH_PORT (SSH) for freelancer$i"
@@ -392,7 +397,7 @@ RUN echo "xfce4-session" > /home/freelancer/.xsession
 USER freelancer
 WORKDIR /home/freelancer
 
-EXPOSE 4000
+EXPOSE 54040
 
 CMD ["/usr/local/bin/startup.sh"]
 EOF
@@ -424,7 +429,7 @@ python3 /scripts/auto_login.py &
 
 # Keep container running
 echo "=== Environment Ready ==="
-echo "Connect via NoMachine on port 4000"
+echo "Connect via NoMachine on port 54040"
 tail -f /dev/null
 EOF
     
@@ -447,8 +452,8 @@ EOF
 
     # Generate service for each freelancer
     for i in $(seq 1 $NUMBER_OF_FREELANCERS); do
-        NX_PORT=$((4000 + i))
-        SSH_PORT=$((2220 + i))
+        NX_PORT=$((54040 + i))
+        SSH_PORT=$((52520 + i))
         
         cat >> docker-compose.yml << EOF
   freelancer$i:
@@ -467,7 +472,7 @@ EOF
       - ./logs/freelancer$i:/var/log/nomachine
       - /dev/shm:/dev/shm
     ports:
-      - "$NX_PORT:4000"
+      - "$NX_PORT:54040"
       - "$SSH_PORT:22"
     cap_add:
       - SYS_ADMIN
@@ -758,7 +763,7 @@ case $ACTION in
         
         if [ -n "$USER" ]; then
             if [[ $USER =~ freelancer([0-9]+) ]]; then
-                PORT=$((4000 + ${BASH_REMATCH[1]}))
+                PORT=$((54040 + ${BASH_REMATCH[1]}))
                 echo "👤 For $USER:"
                 echo "   NoMachine: $DOMAIN:$PORT"
                 echo "   Username: freelancer"
@@ -768,7 +773,7 @@ case $ACTION in
             echo "👥 All freelancers:"
             for i in {1..5}; do
                 if docker ps --format "{{.Names}}" | grep -q "freelancer$i"; then
-                    echo "   freelancer$i: $DOMAIN:$((4000 + i))"
+                    echo "   freelancer$i: $DOMAIN:$((54040 + i))"
                 fi
             done
         fi
@@ -940,7 +945,7 @@ while true; do
     # Connection test
     echo "🔌 Quick Connection Test:"
     for i in {1..3}; do
-        PORT=$((4000 + i))
+        PORT=$((54040 + i))
         if docker ps --format "{{.Names}}" | grep -q "freelancer$i"; then
             echo -n "   Port $PORT: "
             if timeout 1 nc -z localhost $PORT >/dev/null 2>&1; then
@@ -993,7 +998,7 @@ Add these rules in your router's admin panel:
 EOF
 
     for i in $(seq 1 $NUMBER_OF_FREELANCERS); do
-        PORT=$((4000 + i))
+        PORT=$((54040 + i))
         echo "| $PORT | $PORT | TCP | $SERVER_LOCAL_IP | NoMachine freelancer$i |" >> "$PROJECT_DIR/ROUTER_SETUP.md"
     done
     
@@ -1005,7 +1010,7 @@ EOF
 EOF
 
     for i in $(seq 1 $NUMBER_OF_FREELANCERS); do
-        PORT=$((2220 + i))
+        PORT=$((52520 + i))
         echo "| $PORT | $PORT | TCP | $SERVER_LOCAL_IP | SSH freelancer$i |" >> "$PROJECT_DIR/ROUTER_SETUP.md"
     done
     
@@ -1096,7 +1101,7 @@ Password: freelancer123
 EOF
 
  for i in $(seq 1 $NUMBER_OF_FREELANCERS); do
-     echo "| freelancer$i | $DOMAIN | $((4000 + i)) | Default password |" >> "$PROJECT_DIR/FREELANCER_GUIDE.md"
+     echo "| freelancer$i | $DOMAIN | $((54040 + i)) | Default password |" >> "$PROJECT_DIR/FREELANCER_GUIDE.md"
  done
  
  cat >> "$PROJECT_DIR/FREELANCER_GUIDE.md" << 'EOF'
@@ -1174,7 +1179,7 @@ EOF
 
 CONNECTION DETAILS:
 Host: $DOMAIN
-Port: $((4000 + i))
+Port: $((54040 + i))
 
 LOGIN CREDENTIALS:
 Username: freelancer
@@ -1232,7 +1237,7 @@ final_verification() {
  # Test 3: Ports
  print_step "3. Port Test..."
  for i in $(seq 1 $NUMBER_OF_FREELANCERS); do
-     PORT=$((4000 + i))
+     PORT=$((54040 + i))
      if timeout 1 nc -z localhost $PORT >/dev/null 2>&1; then
          print_status "Port $PORT: ✓ Open"
      else

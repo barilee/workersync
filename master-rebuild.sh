@@ -22,6 +22,7 @@ NUMBER_OF_FREELANCERS=3               # How many freelancer containers to create
 
 # Global variables
 PROJECT_DIR="/opt/freelancer-env"
+PROJECT_PY_DIR="~/projects/py/master_rebuild"
 SERVER_PUBLIC_IP=""
 ADMIN_SSH_PORT=$((58080 + 5))  # Change 0 to offset if needed
 
@@ -134,8 +135,8 @@ install_dependencies() {
     apt install -y python3 python3-pip python3-venv jq net-tools ufw fail2ban cron
     
     print_step "Setting up Python virtual environment..."
-    mkdir -p ~/.local/bin/py/master_rebuild
-    cd ~/.local/bin/py/master_rebuild
+    mkdir -p ${PROJECT_PY_DIR}
+    cd ${PROJECT_PY_DIR}
     python3 -m venv .venv
     source .venv/bin/activate
 

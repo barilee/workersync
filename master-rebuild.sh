@@ -4,24 +4,6 @@
 
 set -e  # Exit on any error
 
-# Use token from file (more secure)
-
-# Load Cloudflare credentials
-CF_TOKEN_FILE="/root/.cloudflare_token"
-if [ -f "$CF_TOKEN_FILE" ]; then
-    API_TOKEN=$(cat "$CF_TOKEN_FILE")
-else
-    echo "Error: Token file not found"
-    exit 1
-fi
-CF_ZONE_ID_FILE="/root/.cloudflare_zone_id"
-if [ -f "$CF_ZONE_ID_FILE" ]; then
-    CF_ZONE_ID=$(cat "$CF_ZONE_ID_FILE")
-else
-    echo "Error: Zone ID file not found"
-    exit 1
-fi
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -31,17 +13,16 @@ MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-
 # Configuration - EDIT THESE VALUES
-DOMAIN="freelancers.yourdomain.com"   # Your Cloudflare domain
-CF_API_TOKEN=$CF_API_TOKEN            # Your Cloudflare API Token
-CF_ZONE_ID=$CF_ZONE_ID                # Your Cloudflare Zone ID
+DOMAIN="freelancers.yourdomain.com"    # Your Cloudflare domain
+CF_API_TOKEN=""                       # Your Cloudflare API Token
+CF_ZONE_ID=""                         # Your Cloudflare Zone ID
 SERVER_LOCAL_IP="192.168.1.100"       # Your server's local IP (for router config)
 NUMBER_OF_FREELANCERS=3               # How many freelancer containers to create
 
 # Global variables
 PROJECT_DIR="/opt/freelancer-env"
-PROJECT_PY_DIR="~/projects/py/master_rebuild"
+PROJECT_PY_DIR="/home/linil/projects/py/master_rebuild"
 SERVER_PUBLIC_IP=""
 ADMIN_SSH_PORT=$((58080 + 5))  # Change 0 to offset if needed
 
